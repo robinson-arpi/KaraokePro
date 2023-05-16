@@ -53,6 +53,7 @@ class Red():
 
         print(etiqueta_predicha)
 
+general = []
 def evaluar_cancion(ruta):
     red_neuronal = Red()
 
@@ -91,7 +92,6 @@ def evaluar_cancion(ruta):
     suma_total = sum(lista)
 
     percentages = [round(valor * 100 / suma_total, 2) for valor in lista]
-
     # Create a bar chart of the probabilities
     fig, ax = plt.subplots()
     ax.bar(range(6), lista)
@@ -106,4 +106,6 @@ def evaluar_cancion(ruta):
     nombre_archivo = 'barras.png'
     plt.savefig(nombre_archivo)
     print(f'Imagen guardada como {nombre_archivo}.')
+    return percentages
+
 

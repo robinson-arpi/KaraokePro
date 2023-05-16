@@ -25,6 +25,7 @@ class MiVentana(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ruta = ""
+        self.ruta2 = ""
         self.ruta_archivo_cargado = ""
         #self.cargar_modelo()
         self.titulo = None
@@ -108,7 +109,7 @@ class MiVentana(QMainWindow):
         sf.write(nombre_archivo, grabacion, fs, format='WAV', subtype='PCM_16')
 
         print(f"Grabación guardada en {nombre_archivo}.")
-        self.cargar_tab2()
+        self.ui.btnGrabar.setStyleSheet("")  # Restaurar el estilo original del botón    
 
     def grabar(self):    
         # Duración y tasa de bits deseadas
@@ -138,7 +139,6 @@ class MiVentana(QMainWindow):
             self.hilo_grabacion = threading.Thread(target = self.grabar)
             self.hilo_grabacion.start()
 
-
     def detener_reproduccion(self):
         if self.reproduccion_en_progreso:
             self.hilo_reproduccion.join()
@@ -149,10 +149,12 @@ class MiVentana(QMainWindow):
         self.ui.btnGrabar.setStyleSheet("")  # Restaurar el estilo original del botón    
             
     def obtener_ruta(self):
+        
         # Obtener la ruta absoluta del directorio actual
         directorio_actual = os.getcwd()
-
+        self.ruta2 = directorio_actual
         # Obtener la ruta absoluta de la carpeta actual
+        # kevin
         ruta = directorio_actual + "\\Pistas"
         return ruta
     
@@ -169,10 +171,30 @@ class MiVentana(QMainWindow):
 
         # Comprobar si se seleccionó un archivo
         if self.ruta_archivo_cargado:
-            rc.evaluar_cancion(self.ruta_archivo_cargado)
+            vector = rc.evaluar_cancion(self.ruta_archivo_cargado)
             self.mostrar_grafico_clasificacion()
             #self.generar_grafico_entonacion2()
             self.ui.tabResultados.setCurrentIndex(1)
+            
+            maximo = max(vector)  # Obtener el valor máximo del vector
+            posicion_maximo = vector.index(maximo)  # Obtener la posición del valor máximo
+            cadena = ""
+            if posicion_maximo == 0:
+                cadena = "Desde Lejos"
+            elif posicion_maximo == 1:
+                cadena = "La Playa"
+            elif posicion_maximo == 2:
+                cadena = "Lo noto"
+            elif posicion_maximo == 3:
+                cadena = "Me voy a olvidar"
+            elif posicion_maximo == 4:
+                cadena = "Por las noches"
+            elif posicion_maximo == 5:
+                cadena = "Te conozco"
+
+            score = "Tu canción era: " + self.titulo + "\nLa canción predecida es: " + cadena + "\nCon un porcentaje de: " + str(maximo)
+            self.ui.txtMetricas.setPlainText(score)
+            
 
     def generar_grafico_entonacion2(self):
         ruta= self.ruta_archivo_cargado
@@ -191,23 +213,30 @@ class MiVentana(QMainWindow):
         plt.show()
 
     def mostrar_grafico_entonacion(self):
-        # Generar el gráfico de representación de audio
-        ruta_original = 'Modelo\\Canciones\\' + self.titulo
-        rv.representacion_audio(str(self.ruta_archivo_cargado),ruta_original,float(self.ui.txtInicio.text()), float(self.ui.txtFin.text()))
+        try:
+            # Generar el gráfico de representación de audio
+            ruta_original = self.ruta2 + '\\Modelo\\Canciones\\' + self.titulo
+            #kevin
+            #ruta_original = 'KaraokePro\\Modelo\\Canciones\\' + self.titulo
+            rv.representacion_audio(str(self.ruta_archivo_cargado),ruta_original,float(self.ui.txtInicio.text()), float(self.ui.txtFin.text()))
 
-        # Crear un pixmap a partir de la imagen
-        pixmap = QPixmap("entonacion.png")
-        #pixmap.loadFromData(grafico_image.getvalue())
+            # Crear un pixmap a partir de la imagen
+            pixmap = QPixmap("entonacion.png")
+            #pixmap.loadFromData(grafico_image.getvalue())
 
-        # Escalar la imagen al tamaño del QGraphicsView
-        #pixmap = pixmap.scaled(self.ui.graficoEntonacion.size())
+            # Escalar la imagen al tamaño del QGraphicsView
+            #pixmap = pixmap.scaled(self.ui.graficoEntonacion.size())
 
-        # Crear una escena y agregar el pixmap
-        scene = QGraphicsScene()
-        scene.addPixmap(pixmap)
+            # Crear una escena y agregar el pixmap
+            scene = QGraphicsScene()
+            scene.addPixmap(pixmap)
 
-        # Establecer la escena en el QGraphicsView
-        self.ui.graficoEntonacion.setScene(scene)
+            # Establecer la escena en el QGraphicsView
+            self.ui.graficoEntonacion.setScene(scene)
+        except Exception as e:
+            print(self.ruta_archivo_cargado)
+            print(ruta_original)
+            print(e)    
 
     def mostrar_grafico_clasificacion(self):
         # Cargar la imagen desde el archivo "barras.png"
